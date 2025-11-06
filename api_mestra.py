@@ -8,7 +8,6 @@ from tensorflow.keras.models import load_model
 from flask_cors import CORS
 
 print("Iniciando a API Mestra de Predição de Dengue...")
-# Supressão de logs do TensorFlow (opcional, para limpar o terminal)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 # --- 1. CONFIGURAÇÕES E CARREGAMENTO INICIAL ---
