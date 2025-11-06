@@ -1,0 +1,187 @@
+/* Importa a fonte do Google */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+/* Reset básico e fontes */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Container Principal */
+.container {
+    max-width: 600px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+}
+
+/* Formulário */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+#bairro-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Garante que o padding não mude a largura */
+}
+
+.dias-selecao {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.dias-selecao input[type="radio"] {
+    margin-right: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+/* Estados (Loading, Error, Hidden) */
+.hidden {
+    display: none;
+}
+
+#loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #555;
+    margin-top: 20px;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0,0,0,0.1);
+    border-left-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#error-message {
+    background-color: #ffe0e0;
+    color: #d9534f;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* --- Resultados --- */
+#results-container {
+    margin-top: 25px;
+}
+
+.risco-card {
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    color: white;
+    margin-bottom: 25px;
+}
+
+/* Cores dinâmicas para o risco */
+.risco-card.alto {
+    background: linear-gradient(135deg, #d9534f, #c9302c);
+}
+.risco-card.baixo {
+    background: linear-gradient(135deg, #5cb85c, #4cae4c);
+}
+
+.risco-card h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+.risco-card p {
+    margin: 10px 0;
+    font-size: 1.2rem;
+}
+.risco-card strong {
+    font-size: 2.5rem;
+    display: block;
+}
+
+/* Lista da Previsão do Tempo */
+h3 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+#previsao-lista {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.previsao-dia {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.previsao-dia .data {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #3498db;
+}
+
+.previsao-dia .detalhes {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}

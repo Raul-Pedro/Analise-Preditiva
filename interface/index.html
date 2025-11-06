@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Preditiva - Dengue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Análise Preditiva de Risco (Dengue)</h1>
+        
+        <form id="previsao-form">
+            <div class="form-group">
+                <label for="bairro-input">Nome do Bairro</label>
+                <input type="text" id="bairro-input" placeholder="Ex: VILA REGINA I" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Período de Análise</label>
+                <div class="dias-selecao">
+                    <input type="radio" name="dias" id="dias1" value="1" checked>
+                    <label for="dias1">1 Dia</label>
+                    
+                    <input type="radio" name="dias" id="dias3" value="3">
+                    <label for="dias3">3 Dias</label>
+                    
+                    <input type="radio" name="dias" id="dias5" value="5">
+                    <label for="dias5">5 Dias</label>
+                </div>
+            </div>
+            
+            <button type="submit" id="analisar-btn">Analisar Risco</button>
+        </form>
+        
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            Buscando dados e analisando...
+        </div>
+        <div id="error-message" class="hidden"></div>
+        
+        <div id="results-container" class="hidden">
+            
+            <div id="risco-card" class="risco-card">
+                <h2 id="risco-bairro"></h2>
+                <p id="risco-probabilidade"></p>
+                <strong id="risco-nivel"></strong>
+            </div>
+            
+            <h3>Previsão Meteorológica Utilizada</h3>
+            <div id="previsao-lista">
+                </div>
+            
+        </div>
+        
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
