@@ -21,7 +21,6 @@ CIDADE = "Montes Claros"
 ESTADO = "MG"
 PAIS = "BR"
 
-# Dicionários para armazenar nossos artefatos carregados
 modelos_carregados = {}
 scaler = None
 dados_bairros_df = None
@@ -33,7 +32,6 @@ config_modelos = {
     '5': {'passos': 40, 'arquivo': 'Treinar API models/modelo_lstm_5d.keras'}
 }
 
-# --- 2. FUNÇÃO DE CARREGAMENTO (Igual ao anterior) ---
 def carregar_todos_artefatos():
     global scaler, dados_bairros_df, modelos_carregados, api_pronta
     
@@ -61,13 +59,12 @@ def carregar_todos_artefatos():
         print(f"\nERRO CRÍTICO AO CARREGAR: {e}")
         return False
 
-# --- 3. NOVA FUNÇÃO: Processar Previsão Diária ---
 def processar_previsao_diaria(lista_previsoes_api, dias_analise):
     """
     Pega a lista de 3h do OpenWeatherMap e a transforma em um
     resumo diário com min, max e probabilidade de chuva.
     """
-    previsao_diaria = {} # Dicionário para agrupar dados por dia
+    previsao_diaria = {}
 
     for previsao in lista_previsoes_api:
         # Pega a data (ex: "2025-11-06") do texto "2025-11-06 00:00:00"
@@ -110,7 +107,7 @@ def processar_previsao_diaria(lista_previsoes_api, dias_analise):
     # Retorna apenas o número de dias que o usuário pediu (1, 3 ou 5)
     return resumo_formatado[:dias_analise]
 
-# --- 4. ROTA DA API DE PREVISÃO (Atualizada) ---
+# --- 4. ROTA DA API DE PREVISÃO ---
 @app.route('/prever_risco/<string:nome_bairro>', methods=['GET'])
 def prever_risco_mestre(nome_bairro):
     if not api_pronta:
