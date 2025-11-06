@@ -8,14 +8,13 @@ from tensorflow.keras.models import load_model
 from flask_cors import CORS
 
 print("Iniciando a API Mestra de Predição de Dengue...")
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 # --- 1. CONFIGURAÇÕES E CARREGAMENTO INICIAL ---
 app = Flask(__name__)
 CORS(app)
 
-# Coloque sua chave do OpenWeatherMap aqui
-API_KEY_WEATHER = "" 
 CIDADE = "Montes Claros"
 ESTADO = "MG"
 PAIS = "BR"
