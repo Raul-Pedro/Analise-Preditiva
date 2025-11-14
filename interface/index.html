@@ -6,6 +6,7 @@
     <title>Análise Preditiva - Dengue</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -22,10 +23,8 @@
                 <div class="dias-selecao">
                     <input type="radio" name="dias" id="dias1" value="1" checked>
                     <label for="dias1">1 Dia</label>
-                    
                     <input type="radio" name="dias" id="dias3" value="3">
                     <label for="dias3">3 Dias</label>
-                    
                     <input type="radio" name="dias" id="dias5" value="5">
                     <label for="dias5">5 Dias</label>
                 </div>
@@ -47,8 +46,12 @@
                 <p id="risco-probabilidade"></p>
                 <strong id="risco-nivel"></strong>
             </div>
+
+            <div class="chart-container">
+                <canvas id="previsao-grafico"></canvas>
+            </div>
             
-            <h3>Previsão Meteorológica Utilizada</h3>
+            <h3>Previsão Meteorológica Detalhada</h3>
             <div id="previsao-lista">
                 </div>
             

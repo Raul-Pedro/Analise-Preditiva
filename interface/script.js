@@ -1,7 +1,5 @@
-// Aguarda o HTML carregar completamente
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Seleciona os elementos da página
     const form = document.getElementById('previsao-form');
     const bairroInput = document.getElementById('bairro-input');
     const analisarBtn = document.getElementById('analisar-btn');
@@ -14,47 +12,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const riscoProb = document.getElementById('risco-probabilidade');
     const riscoNivel = document.getElementById('risco-nivel');
     const previsaoLista = document.getElementById('previsao-lista');
+    
+    const graficoCanvas = document.getElementById('previsao-grafico');
+    
+    let meuGrafico = null;
 
-    // Escuta o evento de "submit" (clique no botão) do formulário
     form.addEventListener('submit', async (e) => {
-        // Previne que a página recarregue (comportamento padrão do form)
         e.preventDefault();
         
-        // 1. Coleta os dados do formulário
         const bairro = bairroInput.value;
         const dias = document.querySelector('input[name="dias"]:checked').value;
         
-        // 2. Prepara a interface para a chamada
-        loadingDiv.classList.remove('hidden'); // Mostra "Analisando..."
-        errorDiv.classList.add('hidden');      // Esconde erros antigos
-        resultsDiv.classList.add('hidden');    // Esconde resultados antigos
-        analisarBtn.disabled = true;           // Desabilita o botão
+        loadingDiv.classList.remove('hidden');
+        errorDiv.classList.add('hidden');
+        resultsDiv.classList.add('hidden');
+        analisarBtn.disabled = true;
 
-        // 3. Constrói a URL da API
-        // encodeURIComponent é importante para nomes com espaços (ex: "VILA REGINA I")
         const url = `http://127.0.0.1:5010/prever_risco/${encodeURIComponent(bairro)}?dias=${dias}`;
 
-        // 4. Faz a chamada para a API (o "coração" do script)
         try {
             const response = await fetch(url);
-            const data = await response.json(); // Pega a resposta em formato JSON
+            const data = await response.json(); 
 
-            // Se a resposta NÃO for OK (ex: 404 Bairro não encontrado)
             if (!response.ok) {
-                // 'data.erro' vem do JSON de erro que nossa API Flask envia
                 throw new Error(data.erro || 'Erro desconhecido ao buscar dados.');
             }
             
-            // Se deu tudo certo, exibe os resultados
             displayResults(data);
 
         } catch (error) {
-            // Se der qualquer erro (rede, API fora do ar, 404, 500)
             displayError(error.message);
         } finally {
-            // Isso acontece sempre, dando certo ou errado
-            loadingDiv.classList.add('hidden'); // Esconde "Analisando..."
-            analisarBtn.disabled = false;         // Reabilita o botão
+            loadingDiv.classList.add('hidden');
+            analisarBtn.disabled = false;
         }
     });
 
@@ -62,15 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * Função para exibir os resultados na tela
      */
     function displayResults(data) {
-        // Mostra o container de resultados
         resultsDiv.classList.remove('hidden');
 
-        // Preenche o Cartão de Risco
         riscoBairro.textContent = data.bairro_pesquisado;
         riscoProb.textContent = `Probabilidade: ${data.probabilidade_risco_dengue}`;
         riscoNivel.textContent = data.nivel_risco_calculado;
 
-        // Adiciona a classe de cor (vermelho ou verde)
         riscoCard.classList.remove('alto', 'baixo');
         if (data.nivel_risco_calculado === 'ALTO') {
             riscoCard.classList.add('alto');
@@ -78,10 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             riscoCard.classList.add('baixo');
         }
 
-        // Limpa a lista de previsões antiga
         previsaoLista.innerHTML = '';
-        
-        // Cria e adiciona cada dia da previsão na lista
         data.previsao_meteorologica_diaria.forEach(dia => {
             const diaHtml = `
                 <div class="previsao-dia">
@@ -95,22 +79,92 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             previsaoLista.innerHTML += diaHtml;
         });
+        
+        // Extrai os dados para o gráfico
+        const labels = data.previsao_meteorologica_diaria.map(dia => formatarData(dia.data));
+        const tempMaxima = data.previsao_meteorologica_diaria.map(dia => dia.maxima_c);
+        const probChuva = data.previsao_meteorologica_diaria.map(dia => dia.probabilidade_chuva_pct);
+
+        // Se já existe um gráfico, destrói ele antes de criar um novo
+        if (meuGrafico) {
+            meuGrafico.destroy();
+        }
+
+        // Cria o novo gráfico
+        const ctx = graficoCanvas.getContext('2d');
+        meuGrafico = new Chart(ctx, {
+            type: 'bar', // Tipo base é barra (para a chuva)
+            data: {
+                labels: labels, // Ex: ['06/11', '07/11', '08/11']
+                datasets: [
+                    {
+                        label: 'Prob. Chuva (%)',
+                        data: probChuva, // Ex: [90, 45, 10]
+                        backgroundColor: '#3498db',
+                        yAxisID: 'yChuva', // Eixo Y da Chuva (esquerda)
+                        order: 2 // Coloca as barras atrás da linha
+                    },
+                    {
+                        label: 'Temp. Máxima (°C)',
+                        data: tempMaxima, // Ex: [28.5, 27.2, 29.0]
+                        type: 'line', // Transforma este dataset em linha
+                        borderColor: '#d9534f',
+                        backgroundColor: '#d9534f',
+                        tension: 0.1,
+                        yAxisID: 'yTemp', // Eixo Y da Temp (direita)
+                        order: 1 // Coloca a linha na frente
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Relação: Temperatura Máxima vs Probabilidade de Chuva'
+                    }
+                },
+                scales: {
+                    // Eixo Y da Esquerda (Chuva)
+                    yChuva: {
+                        type: 'linear',
+                        position: 'left',
+                        min: 0,
+                        max: 100, // Escala de 0 a 100%
+                        title: {
+                            display: true,
+                            text: 'Probabilidade de Chuva (%)'
+                        }
+                    },
+                    // Eixo Y da Direita (Temperatura)
+                    yTemp: {
+                        type: 'linear',
+                        position: 'right',
+                        suggestedMin: 15,
+                        suggestedMax: 40,
+                        title: {
+                            display: true,
+                            text: 'Temperatura (°C)'
+                        },
+                        grid: {
+                            drawOnChartArea: false 
+                        }
+                    }
+                }
+            }
+        });
     }
 
-    /**
-     * Função para exibir mensagens de erro
-     */
     function displayError(message) {
         errorDiv.textContent = `Erro: ${message}`;
         errorDiv.classList.remove('hidden');
     }
     
     /**
-     * Função simples para formatar a data (AAAA-MM-DD -> DD/MM)
+     * Função para formatar a data (AAAA-MM-DD -> DD/MM)
      */
     function formatarData(dataString) {
         const [ano, mes, dia] = dataString.split('-');
         return `${dia}/${mes}`;
     }
-
 });
