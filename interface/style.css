@@ -80,7 +80,9 @@ button:hover {
 
 /* Estados (Loading, Error, Hidden) */
 .hidden {
-    display: none;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
 
 #loading {

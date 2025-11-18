@@ -14,8 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const previsaoLista = document.getElementById('previsao-lista');
     
     const graficoCanvas = document.getElementById('previsao-grafico');
-    
     let meuGrafico = null;
+
+    // Função de espera
+    const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -23,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const bairro = bairroInput.value;
         const dias = document.querySelector('input[name="dias"]:checked').value;
         
-        loadingDiv.classList.remove('hidden');
+        // Mostra Loading
+        loadingDiv.classList.remove('hidden'); 
         errorDiv.classList.add('hidden');
         resultsDiv.classList.add('hidden');
         analisarBtn.disabled = true;
@@ -31,31 +34,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = `http://127.0.0.1:5010/prever_risco/${encodeURIComponent(bairro)}?dias=${dias}`;
 
         try {
-            const response = await fetch(url);
+            // Suspense de 2 segundos + Busca
+            const [_, response] = await Promise.all([
+                esperar(2000), 
+                fetch(url)
+            ]);
+
             const data = await response.json(); 
 
             if (!response.ok) {
                 throw new Error(data.erro || 'Erro desconhecido ao buscar dados.');
             }
             
-            displayResults(data);
+            displayResults(data); 
 
         } catch (error) {
+            console.error("ERRO:", error);
             displayError(error.message);
         } finally {
+            // Esconde Loading
             loadingDiv.classList.add('hidden');
             analisarBtn.disabled = false;
         }
     });
 
-    /**
-     * Função para exibir os resultados na tela
-     */
     function displayResults(data) {
         resultsDiv.classList.remove('hidden');
 
+        // Preenche Texto
         riscoBairro.textContent = data.bairro_pesquisado;
-        riscoProb.textContent = `Probabilidade: ${data.probabilidade_risco_dengue}`;
+        riscoProb.textContent = `Probabilidade de Surto: ${data.probabilidade_risco_dengue}`;
         riscoNivel.textContent = data.nivel_risco_calculado;
 
         riscoCard.classList.remove('alto', 'baixo');
@@ -65,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             riscoCard.classList.add('baixo');
         }
 
+        // Preenche Lista
         previsaoLista.innerHTML = '';
         data.previsao_meteorologica_diaria.forEach(dia => {
             const diaHtml = `
@@ -72,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="data">${formatarData(dia.data)}</div>
                     <div class="detalhes">
                         <strong>${dia.resumo_tempo}</strong><br>
-                        Temp: ${dia.minima_c.toFixed(1)}°C / ${dia.maxima_c.toFixed(1)}°C<br>
+                        Temp Máx: ${dia.maxima_c.toFixed(1)}°C<br>
                         Chuva: ${dia.probabilidade_chuva_pct}%
                     </div>
                 </div>
@@ -80,75 +89,65 @@ document.addEventListener('DOMContentLoaded', () => {
             previsaoLista.innerHTML += diaHtml;
         });
         
-        // Extrai os dados para o gráfico
+        // --- CRIAÇÃO DO NOVO GRÁFICO ---
+        
+        // 1. Prepara os dados
         const labels = data.previsao_meteorologica_diaria.map(dia => formatarData(dia.data));
-        const tempMaxima = data.previsao_meteorologica_diaria.map(dia => dia.maxima_c);
         const probChuva = data.previsao_meteorologica_diaria.map(dia => dia.probabilidade_chuva_pct);
+        
+        const probInfeccaoValor = parseFloat(data.probabilidade_risco_dengue.replace('%', ''));
+        
+        const probInfeccaoData = labels.map(() => probInfeccaoValor);
 
-        // Se já existe um gráfico, destrói ele antes de criar um novo
         if (meuGrafico) {
             meuGrafico.destroy();
         }
 
-        // Cria o novo gráfico
         const ctx = graficoCanvas.getContext('2d');
         meuGrafico = new Chart(ctx, {
-            type: 'bar', // Tipo base é barra (para a chuva)
+            type: 'bar',
             data: {
-                labels: labels, // Ex: ['06/11', '07/11', '08/11']
+                labels: labels,
                 datasets: [
                     {
                         label: 'Prob. Chuva (%)',
-                        data: probChuva, // Ex: [90, 45, 10]
-                        backgroundColor: '#3498db',
-                        yAxisID: 'yChuva', // Eixo Y da Chuva (esquerda)
-                        order: 2 // Coloca as barras atrás da linha
+                        data: probChuva,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)', // Azul transparente
+                        borderColor: '#3498db',
+                        borderWidth: 1,
+                        order: 2
                     },
                     {
-                        label: 'Temp. Máxima (°C)',
-                        data: tempMaxima, // Ex: [28.5, 27.2, 29.0]
-                        type: 'line', // Transforma este dataset em linha
-                        borderColor: '#d9534f',
-                        backgroundColor: '#d9534f',
+                        label: 'Risco de Infecção (%)', // A estrela do show
+                        data: probInfeccaoData,
+                        type: 'line', // Linha
+                        borderColor: '#8e44ad', // Roxo (cor de alerta/vírus)
+                        backgroundColor: '#8e44ad',
+                        borderWidth: 3,
+                        pointRadius: 5, // Pontos maiores
                         tension: 0.1,
-                        yAxisID: 'yTemp', // Eixo Y da Temp (direita)
-                        order: 1 // Coloca a linha na frente
+                        order: 1
                     }
                 ]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Relação: Temperatura Máxima vs Probabilidade de Chuva'
+                    title: { 
+                        display: true, 
+                        text: 'Correlação: Chuva vs Risco de Infecção',
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
                     }
                 },
                 scales: {
-                    // Eixo Y da Esquerda (Chuva)
-                    yChuva: {
-                        type: 'linear',
-                        position: 'left',
-                        min: 0,
-                        max: 100, // Escala de 0 a 100%
-                        title: {
-                            display: true,
-                            text: 'Probabilidade de Chuva (%)'
-                        }
-                    },
-                    // Eixo Y da Direita (Temperatura)
-                    yTemp: {
-                        type: 'linear',
-                        position: 'right',
-                        suggestedMin: 15,
-                        suggestedMax: 40,
-                        title: {
-                            display: true,
-                            text: 'Temperatura (°C)'
-                        },
-                        grid: {
-                            drawOnChartArea: false 
-                        }
+                    y: {
+                        beginAtZero: true,
+                        max: 100, 
+                        title: { display: true, text: 'Probabilidade (%)' }
                     }
                 }
             }
@@ -160,9 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         errorDiv.classList.remove('hidden');
     }
     
-    /**
-     * Função para formatar a data (AAAA-MM-DD -> DD/MM)
-     */
     function formatarData(dataString) {
         const [ano, mes, dia] = dataString.split('-');
         return `${dia}/${mes}`;
